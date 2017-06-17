@@ -1,0 +1,11 @@
+*.iml
+.idea/
+.resources/
+*.ipr
+*.iws
+**/.DS_Store
+node_modules
+build
+.git
+.git/
+npm-debug.log

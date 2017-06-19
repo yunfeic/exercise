@@ -1,13 +1,17 @@
 var path = require('path')
+var fs = require('fs')
+
 var gulp = require('gulp')
 var del = require('del')
 var rename = require('gulp-rename')
 var replace = require('gulp-replace')
 var gulpSequence = require('gulp-sequence')
 var htmlmin = require("gulp-htmlmin")
+var htmlone = require('gulp-htmlone')
 var webpack = require('webpack')
 var webpackDevServer = require('webpack-dev-server')
 var webpackOnBuildPlugin = require('on-build-webpack')
+var ExtractTextPlugin = require('extract-text-webpack-plugin')
 
 var moment = require('moment')
 var colors = require('colors')
@@ -35,20 +39,31 @@ gulp.task('assets', function () {
 })
 
 gulp.task('html', function () {
-  var gulpStream = gulp.src('pages/*/*.html')
-    .pipe(rename(function (path) {
-      path.basename = path.dirname;
-      path.dirname = ''
-    }))
-    .pipe(replace(/\$\$_cdnUrl_\$\$/ig, envConfig[env].cdnUrl))
+  var gulpStream = ''
 
   if (!/dev/.test(env)) {
-    gulpStream.pipe(htmlmin({
-      minifyJS: true,
-      minifyCSS: true,
-      collapseWhitespace: true,
-      removeComments: true
-    }))
+    gulpStream = gulp.src('pages/*/*.html')
+      .pipe(rename(function (path) {
+        path.basename = path.dirname;
+        path.dirname = ''
+      }))
+      .pipe(replace(/\$\$_cdnUrl_\$\$/ig, envConfig[env].cdnUrl))
+      .pipe(htmlone({
+        keepliveSelector: '.keep'
+      }))
+      .pipe(htmlmin({
+        minifyJS: true,
+        minifyCSS: true,
+        collapseWhitespace: true,
+        removeComments: true
+      }))
+  }else{
+    gulpStream = gulp.src('pages/*/*.html')
+      .pipe(rename(function (path) {
+        path.basename = path.dirname;
+        path.dirname = ''
+      }))
+      .pipe(replace(/\$\$_cdnUrl_\$\$/ig, envConfig[env].cdnUrl))
   }
 
   gulpStream.pipe(gulp.dest('build/pages'))
@@ -61,25 +76,22 @@ gulp.task("watch", ["html"], function() {
 });
 
 gulp.task('webpack', function () {
-  if (/dev/.test(env)) {
+  if (!/dev/.test(env)) {
+    webpackConfig.output.publicPath = envConfig[env].cdnUrl + '/';
+    webpackConfig.output.filename = '[name].[chunkhash:8].js';
+    webpackConfig.output.chunkFilename = '[name].[chunkhash:8].js';
+    webpackConfig.plugins.push(new ExtractTextPlugin('[name].[chunkhash:8].css'));
+    webpackConfig.plugins.push(
+      new webpack.optimize.UglifyJsPlugin({
+        compress: {
+          warnings: true
+        }
+      })
+    );
+  }else{
+    webpackConfig.devtool = 'cheap-module-eval-source-map'
+    webpackConfig.plugins.push(new ExtractTextPlugin('[name].css'));
     webpackConfig.plugins.push(new webpack.HotModuleReplacementPlugin());
-
-    // webpackConfig.plugins.push(new webpackOnBuildPlugin(function (stats) {
-    //   var statJson = stats.toJson({errorDetails: true, assets: true, cached: true});
-    //   if (stats.hasErrors()) {
-    //     console.error('[' + nowTime() + '] ' + colors.red('构建出错......'));
-    //     console.error("\n" + colors.red(statJson.errors));
-    //     return;
-    //   }
-    //
-    //   console.log('[' + nowTime() + '] ' + colors.green('构建成功,构建结果资源如下:'));
-    //   var asserts = [];
-    //   _.forEach(statJson.assets, function (assert, index) {
-    //     asserts.push('[' + nowTime() + '] ' + "|---- " + colors.green(host + ':' + port + '/pages/'));
-    //   });
-    //   console.log(asserts.join("\n"));
-    //
-    // }));
   }
 
   console.log('[' + nowTime() + '] ' + colors.green(env + '环境,开始进行webpack打包'));
@@ -104,11 +116,42 @@ gulp.task('webpack', function () {
   });
 })
 
+gulp.task('hash', function(){
+  var res = fs.readFileSync(path.join(__dirname, 'stats.json'), 'utf8');
+  var statsData = JSON.parse(res);
+  var pagesDir = path.join(__dirname, '/build/pages/');
+  var dirs = fs.readdirSync(pagesDir);
+  dirs.forEach(function (v, i) {
+    var file = fs.readFileSync(path.join(pagesDir, v), 'utf8');
+    var fileKeyWord = v.match(/(\S+).html/)[1];
+    var k = `${fileKeyWord}/index`;
+    var fnJsHash = ''
+    var fnCssHash = ''
+
+    if(typeof statsData.assetsByChunkName[k] === 'string'){
+      fnJsHash = statsData.assetsByChunkName[k];
+    }else{
+      fnJsHash = statsData.assetsByChunkName[k][0];
+      fnCssHash = statsData.assetsByChunkName[k][1];
+    }
+    var replaceJsReg = new RegExp(`(<script[\\s\\S]+)${k}.js`);
+    var htmlOutput = file.replace(replaceJsReg, `$1${fnJsHash}`);
+
+    if(fnCssHash){
+      replaceCssReg = new RegExp(`(<link[\\s\\S]+)${k}.css`);
+      htmlOutput = htmlOutput.replace(replaceCssReg, `$1${fnCssHash}`);
+    }
+
+    fs.writeFileSync(path.join(pagesDir, v), htmlOutput, { encoding: 'utf8' });
+    console.log(`Add hash in ${v}`);
+  })
+})
+
 gulp.task('build', function(cb) {
   if(/dev/.test(env)){
     gulpSequence('html', 'watch', 'assets', 'webpack', cb)
   }else{
-    gulpSequence('clean', 'html', 'assets', 'webpack', cb)
+    gulpSequence('clean', 'html', 'assets', 'webpack', 'hash', cb)
   }
 });
 

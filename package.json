@@ -8,8 +8,7 @@
     "dev-pre": "export WEBPACK_ENV=devPre && gulp devPre",
     "daily": "export WEBPACK_ENV=daily && gulp daily",
     "pre": "export WEBPACK_ENV=pre && gulp pre",
-    "prod": "export WEBPACK_ENV=prod && gulp prod",
-    "buildJs": "webpack"
+    "prod": "export WEBPACK_ENV=prod && gulp prod"
   },
   "author": "",
   "license": "ISC",
@@ -20,9 +19,12 @@
     "colors": "^1.1.2",
     "css-loader": "^0.28.4",
     "del": "^3.0.0",
+    "eslint": "^4.0.0",
+    "eslint-loader": "^1.8.0",
     "extract-text-webpack-plugin": "^2.1.2",
     "gulp": "^3.9.1",
     "gulp-htmlmin": "^3.0.0",
+    "gulp-htmlone": "^0.1.9",
     "gulp-rename": "^1.2.2",
     "gulp-replace": "^0.5.4",
     "gulp-sequence": "^0.4.6",

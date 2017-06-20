@@ -12,6 +12,6 @@ console.log(s)
 
 var t = moment().format()
 console.log(t)
-
-let a = 1
-console.log(a)
+function aa () {
+  console.log(1)
+}

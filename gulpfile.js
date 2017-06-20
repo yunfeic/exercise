@@ -33,9 +33,9 @@ gulp.task("clean", function() {
   var delPath = del.sync('./build')
 })
 
-gulp.task('assets', function () {
-  gulp.src('assets/*.*')
-    .pipe(gulp.dest('build/static/assets'))
+gulp.task('dist', function () {
+  gulp.src('dist/*.*')
+    .pipe(gulp.dest('build/static/dist'))
 })
 
 gulp.task('html', function () {
@@ -149,9 +149,9 @@ gulp.task('hash', function(){
 
 gulp.task('build', function(cb) {
   if(/dev/.test(env)){
-    gulpSequence('html', 'watch', 'assets', 'webpack', cb)
+    gulpSequence('html', 'watch', 'dist', 'webpack', cb)
   }else{
-    gulpSequence('clean', 'html', 'assets', 'webpack', 'hash', cb)
+    gulpSequence('clean', 'html', 'dist', 'webpack', 'hash', cb)
   }
 });
 

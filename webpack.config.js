@@ -49,6 +49,17 @@ module.exports = {
   module: {
     rules: [
       {
+        test: /\.(png|jpg|gif)$/,
+        use: [
+          {
+            loader: 'url-loader',
+            options: {
+              limit: 8192
+            }
+          }
+        ]
+      },
+      {
         test: /\.css$/,
         use: ExtractTextPlugin.extract([ 'css-loader', 'postcss-loader' ])
         // use: [ 'css-loader', 'postcss-loader' ]

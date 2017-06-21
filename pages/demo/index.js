@@ -1,17 +1,1 @@
-import './index.less'
-// import './index.css'
-
-import _ from 'lodash'
-import moment from 'moment'
-
-import api from '../../common/api'
-console.log(api.counselorStep)
-
-var s = _.join(['Hello', 'webpack'], ' ')
-console.log(s)
-
-var t = moment().format()
-console.log(t)
-function aa () {
-  console.log(1)
-}
+import './index.less'import _ from 'lodash'import moment from 'moment'import api from '../../common/api'console.log(api.counselorStep)var s = _.join(['Hello', 'webpack'], ' ')console.log(s)var t = moment().format()console.log(t)function aa () {  console.log(1)}

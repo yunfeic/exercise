@@ -7,4 +7,3 @@ function getApi(api) {
 module.exports = {
   counselorStep: getApi('/fxweb/cshop.counselorStep/1.0'),
 };
-

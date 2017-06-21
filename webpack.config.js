@@ -62,7 +62,7 @@ module.exports = {
       {
         test: /\.css$/,
         use: ExtractTextPlugin.extract([ 'css-loader', 'postcss-loader' ])
-        // use: [ 'css-loader', 'postcss-loader' ]
+        // use: [ 'style-loader', 'css-loader', 'postcss-loader' ]
       },
       {
         test: /\.less$/,
@@ -86,6 +86,15 @@ module.exports = {
         test: /\.js$/,
         use: 'babel-loader',
         exclude: /(node_modules)/
+      },
+      {
+        test: /\.vue$/,
+        loader: 'vue-loader',
+        options: {
+          loaders: {
+            less: 'vue-style-loader!css-loader!less-loader',
+          }
+        }
       }
 
       ]
@@ -109,4 +118,7 @@ module.exports = {
     })
 
   ],
+  resolve: {
+    alias: {vue: 'vue/dist/vue.js'}
+  },
 }
